@@ -17,7 +17,7 @@ header{background:#d18cd1;color:white;padding:15px;text-align:center;font-size:1
 .added-tick{color:green;margin-left:5px;display:none;}
 .cart-container{flex:1 1 35%;padding:10px;position:sticky;top:10px;max-height:80vh;overflow:auto;background:#fdfdfd;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 .cart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.cart-header button{background:#d18cd1;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;}
+.cart-header button{background:#d18cd1;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;margin-left:5px;}
 .cart-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid #eee;}
 .cart-item button{padding:2px 6px;margin:0 2px;border:none;border-radius:4px;background:#d18cd1;color:white;cursor:pointer;}
 #searchBar{width:100%;padding:8px;margin-bottom:10px;border-radius:4px;border:1px solid #ccc;}
@@ -41,6 +41,7 @@ header{background:#d18cd1;color:white;padding:15px;text-align:center;font-size:1
     <div class="cart-header">
       <span>سبد خرید 🛒 <span id="cartCount">0</span></span>
       <button id="printBtn">چاپ فاکتور</button>
+      <button id="emptyCartBtn">🗑 خالی کردن سبد</button>
     </div>
     <div id="cartItems"></div>
     <div style="margin-top:10px;font-weight:bold;">جمع کل: <span id="cartTotal">0</span> تومان</div>
@@ -120,15 +121,14 @@ const cartCount=document.getElementById('cartCount');
 const searchBar=document.getElementById('searchBar');
 const searchResults=document.getElementById('searchResults');
 const printBtn=document.getElementById('printBtn');
+const emptyCartBtn=document.getElementById('emptyCartBtn');
 
 // ======= رندر دسته‌ها =======
 function renderCategories(){
 categoriesDiv.innerHTML='';
 categoriesData.forEach(cat=>{
 const catProducts=productsData.filter(p=>p.category===cat);
-if(catProducts.length>0){
 const details=document.createElement('details');
-details.className='details-category';
 const summary=document.createElement('summary');
 summary.textContent=cat;
 details.appendChild(summary);
@@ -144,7 +144,6 @@ addToCart(p);tick.style.display='inline';setTimeout(()=>tick.style.display='none
 details.appendChild(div);
 });
 categoriesDiv.appendChild(details);
-}
 });
 }
 
@@ -197,11 +196,11 @@ updateCart();
 renderCategories();
 }
 
-// ======= جستجوی Autocomplete =======
+// ======= جستجوی Autocomplete پیشرفته =======
 searchBar.addEventListener('input',()=>{
-const val=searchBar.value.trim();
+const val=searchBar.value.trim().replace(/آ/g,'ا');
 if(val===''){searchResults.style.display='none';return;}
-let filtered=productsData.filter(p=>p.name.replace(/آ/g,'ا').startsWith(val.replace(/آ/g,'ا')));
+let filtered=productsData.filter(p=>p.name.replace(/آ/g,'ا').includes(val));
 searchResults.innerHTML='';
 filtered.forEach(p=>{
 const div=document.createElement('div');
@@ -235,6 +234,12 @@ const printContent=document.getElementById('invoicePrint').innerHTML;
 const newWin=window.open('','_blank','width=400,height=600');
 newWin.document.write('<html><head><title>رسید</title></head><body style="background:white;color:black;">'+printContent+'</body></html>');
 newWin.document.close();newWin.focus();newWin.print();newWin.close();
+});
+
+// ======= خالی کردن سبد =======
+emptyCartBtn.addEventListener('click', () => {
+cart = [];
+updateCart();
 });
 </script>
 </body>
