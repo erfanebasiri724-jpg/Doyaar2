@@ -5,9 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>کافه بستنی دویار</title>
 <style>
-body { font-family: Arial, sans-serif; margin:0; padding:0; background:#fff; color:#333; direction:rtl; }
+body { font-family: Arial, sans-serif; margin:0; padding:0; direction:rtl; background:#fff; color:#333; }
 header { background:#ff8c00; padding:15px; text-align:center; font-size:2em; font-weight:bold; color:#fff; }
-#searchBar { width:90%; max-width:400px; margin:10px auto; display:block; padding:8px; border-radius:5px; border:1px solid #ccc; text-align:right; }
+#searchContainer { width:90%; max-width:400px; margin:10px auto; position:relative; }
+#searchBar { width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; text-align:right; }
+#searchResults { position:absolute; top:36px; right:0; width:100%; border:1px solid #ccc; border-radius:5px; background:#fff; max-height:200px; overflow-y:auto; display:none; z-index:100; }
+.search-item { padding:5px 10px; cursor:pointer; }
+.search-item:hover { background:#ffebcc; }
 .details-category { margin:10px; border:1px solid #ccc; border-radius:5px; padding:5px; }
 summary { font-weight:bold; cursor:pointer; padding:5px; background:#ff8c00; color:#fff; border-radius:5px; }
 .product-card { border:1px solid #ccc; border-radius:8px; padding:10px; margin:5px; display:flex; justify-content:space-between; align-items:center; background:#f9f9f9; }
@@ -23,7 +27,10 @@ summary { font-weight:bold; cursor:pointer; padding:5px; background:#ff8c00; col
 </head>
 <body>
 <header>کافه بستنی دویار</header>
+<div id="searchContainer">
 <input type="text" id="searchBar" placeholder="جستجوی محصول...">
+<div id="searchResults"></div>
+</div>
 <div id="categories"></div>
 <button id="cartBtn">🛒<span id="cartCount">0</span></button>
 <div id="cart">
@@ -126,37 +133,38 @@ const cartItemsDiv=document.getElementById('cartItems');
 const cartTotal=document.getElementById('cartTotal');
 const cartCount=document.getElementById('cartCount');
 const searchBar=document.getElementById('searchBar');
+const searchResults=document.getElementById('searchResults');
 const printBtn=document.getElementById('printBtn');
 
-function renderCategories(filteredProducts){
+function renderCategories(data){
 categoriesDiv.innerHTML='';
 categoriesData.forEach(cat=>{
-const det=document.createElement('details');
-det.className='details-category';
-const sum=document.createElement('summary');
-sum.textContent=cat;
-det.appendChild(sum);
-const container=document.createElement('div');
-container.className='products-container';
-det.appendChild(container);
-categoriesDiv.appendChild(det);
-const products=filteredProducts.filter(p=>p.category===cat);
-products.forEach(p=>{
-const card=document.createElement('div');
-card.className='product-card';
-card.innerHTML=`<div>${p.name}</div><div>${p.price.toLocaleString()} تومان</div><button>➕</button><span class="added-tick">✔</span>`;
-const btn=card.querySelector('button');
-const tick=card.querySelector('.added-tick');
-btn.addEventListener('click', ()=>{
-const existing=cart.find(it=>it.name===p.name);
-if(existing){existing.qty++;}else{cart.push({name:p.name,price:p.price,qty:1});}
-tick.style.display='inline';
-setTimeout(()=>tick.style.display='none',300);
+const catProducts=data.filter(p=>p.category===cat);
+if(catProducts.length>0){
+const details=document.createElement('details');
+details.className='details-category';
+const summary=document.createElement('summary');
+summary.textContent=cat;
+details.appendChild(summary);
+catProducts.forEach(p=>{
+const div=document.createElement('div');
+div.className='product-card';
+div.innerHTML=`<span>${p.name} - ${p.price.toLocaleString()} تومان</span>
+<button>افزودن</button><span class="added-tick">✔</span>`;
+div.querySelector('button').addEventListener('click',()=>{
+let item=cart.find(it=>it.name===p.name);
+if(item){item.qty++;}else{cart.push({name:p.name,price:p.price,qty:1});}
 renderCart();
+const tick=div.querySelector('.added-tick');
+tick.style.display='inline';
+setTimeout(()=>{tick.style.display='none';},300);
 });
-container.appendChild(card);
+details.appendChild(div);
 });
-});
+categoriesDiv.appendChild(details);
+}
+}
+
 }
 
 function renderCart(){
@@ -189,9 +197,26 @@ cartCount.textContent=cart.reduce((acc,it)=>acc+it.qty,0);
 cartBtn.addEventListener('click', ()=>{ cartDiv.style.display = cartDiv.style.display==='none'?'block':'none'; });
 
 searchBar.addEventListener('input', ()=>{
-const term=searchBar.value.trim();
+const term=searchBar.value.trim().replace('ا','آ').replace('آ','ا');
+if(term===''){searchResults.style.display='none'; searchResults.innerHTML=''; return;}
 const filtered=productsData.filter(p=>p.name.includes(term));
-renderCategories(filtered);
+searchResults.innerHTML='';
+if(filtered.length>0){
+filtered.forEach(p=>{
+const div=document.createElement('div');
+div.className='search-item';
+div.textContent=p.name;
+div.addEventListener('click',()=>{
+let item=cart.find(it=>it.name===p.name);
+if(item){item.qty++;}else{cart.push({name:p.name,price:p.price,qty:1});}
+renderCart();
+searchResults.style.display='none';
+searchBar.value='';
+});
+searchResults.appendChild(div);
+});
+searchResults.style.display='block';
+}else{searchResults.style.display='none';}
 });
 
 // چاپ فاکتور
