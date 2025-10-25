@@ -3,32 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>کافه بستنی دویار - POS</title>
+<title>کافه بستنی دویار - POS حرفه‌ای</title>
 <style>
-body{font-family:sans-serif;background:#f8f0f8;margin:0;padding:0;color:#333;}
+body{font-family:sans-serif;background:#fff0f5;margin:0;padding:0;color:#333;}
 header{background:#d18cd1;color:white;padding:15px;text-align:center;font-size:1.5em;font-weight:bold;}
 .container{display:flex;flex-wrap:wrap;padding:10px;}
 .categories{flex:1 1 60%;padding:10px;max-width:800px;position:relative;}
-.details-category{background:#fdfdfd;margin-bottom:10px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-.details-category summary{padding:10px;background:#d9b3f2;border-radius:6px;cursor:pointer;font-weight:bold;}
-.product-card{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-top:1px solid #eee;}
-.product-card button{background:#d18cd1;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;}
+.details-category{background:#fff0ff;margin-bottom:10px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.details-category summary{padding:10px;background:#e5b3f2;border-radius:6px;cursor:pointer;font-weight:bold;}
+.product-card{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-top:1px solid #eee;border-radius:4px;margin:3px 0;transition:0.2s; background:#fff;}
+.product-card:hover{background:#ffe6ff;}
+.product-card button{background:#d18cd1;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;transition:0.2s;}
 .product-card button:hover{background:#b069c2;}
-.added-tick{color:green;margin-left:5px;display:none;}
-.cart-container{flex:1 1 35%;padding:10px;position:sticky;top:10px;max-height:80vh;overflow:auto;background:#fdfdfd;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-.cart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.cart-header button{background:#d18cd1;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;margin-left:5px;}
+.added-tick{color:green;margin-left:5px;display:none;font-weight:bold;}
+.cart-container{flex:1 1 35%;padding:10px;position:sticky;top:10px;max-height:80vh;overflow:auto;background:#fff0ff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.cart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.cart-header button{background:#d18cd1;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;margin-left:5px;margin-top:5px;transition:0.2s;}
+.cart-header button:hover{background:#b069c2;}
 .cart-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid #eee;}
-.cart-item button{padding:2px 6px;margin:0 2px;border:none;border-radius:4px;background:#d18cd1;color:white;cursor:pointer;}
+.cart-item button{padding:2px 6px;margin:0 2px;border:none;border-radius:4px;background:#d18cd1;color:white;cursor:pointer;transition:0.2s;}
+.cart-item button:hover{background:#b069c2;}
 #searchBar{width:100%;padding:8px;margin-bottom:10px;border-radius:4px;border:1px solid #ccc;}
-#searchResults{background:white;border:1px solid #ccc;border-radius:4px;max-height:150px;overflow:auto;position:absolute;z-index:100;display:none;width:calc(100% - 20px);}
+#searchResults{background:white;border:1px solid #ccc;border-radius:4px;max-height:200px;overflow:auto;position:absolute;z-index:100;display:none;width:calc(100% - 20px);}
 .search-item{padding:5px;cursor:pointer;display:flex;justify-content:space-between;}
-.search-item:hover{background:#f0f0f0;}
+.search-item:hover{background:#ffe6ff;}
+.highlight{background-color:yellow;}
 .invoicePrint{display:none;}
 </style>
 </head>
 <body>
-<header>کافه بستنی دویار - POS</header>
+<header>کافه بستنی دویار - POS حرفه‌ای</header>
 
 <div class="container">
   <div class="categories">
@@ -196,16 +200,18 @@ updateCart();
 renderCategories();
 }
 
-// ======= جستجوی Autocomplete پیشرفته =======
+// ======= جستجوی پیشرفته با هایلایت و Quick Add =======
 searchBar.addEventListener('input',()=>{
 const val=searchBar.value.trim().replace(/آ/g,'ا');
 if(val===''){searchResults.style.display='none';return;}
+let regex=new RegExp(`(${val})`,"gi");
 let filtered=productsData.filter(p=>p.name.replace(/آ/g,'ا').includes(val));
 searchResults.innerHTML='';
 filtered.forEach(p=>{
 const div=document.createElement('div');
 div.className='search-item';
-div.innerHTML=`<span>${p.name} - ${p.price.toLocaleString()} تومان</span><button>+</button>`;
+const highlighted=p.name.replace(regex, `<span class="highlight">$1</span>`);
+div.innerHTML=`<span>${highlighted} - ${p.price.toLocaleString()} تومان</span><button>+</button>`;
 div.querySelector('button').addEventListener('click',()=>{
 addToCart(p);
 searchBar.value='';searchResults.style.display='none';
