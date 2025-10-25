@@ -1,134 +1,119 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>کافه بستنی دویار</title>
+<title>کافه بستنی دویار - POS</title>
 <style>
-body { font-family: Arial, sans-serif; margin:0; padding:0; direction:rtl; background:#fff; color:#333; }
-header { background:#ff8c00; padding:15px; text-align:center; font-size:2em; font-weight:bold; color:#fff; }
-#searchContainer { width:90%; max-width:400px; margin:10px auto; position:relative; }
-#searchBar { width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; text-align:right; }
-#searchResults { position:absolute; top:36px; right:0; width:100%; border:1px solid #ccc; border-radius:5px; background:#fff; max-height:200px; overflow-y:auto; display:none; z-index:100; }
-.search-item { padding:5px 10px; cursor:pointer; }
-.search-item:hover { background:#ffebcc; }
-.details-category { margin:10px; border:1px solid #ccc; border-radius:5px; padding:5px; }
-summary { font-weight:bold; cursor:pointer; padding:5px; background:#ff8c00; color:#fff; border-radius:5px; }
-.product-card { border:1px solid #ccc; border-radius:8px; padding:10px; margin:5px; display:flex; justify-content:space-between; align-items:center; background:#f9f9f9; }
-.product-card button { padding:5px 8px; cursor:pointer; }
-.product-card .added-tick { color:green; font-weight:bold; display:none; margin-left:5px; }
-#cartBtn { position:fixed; top:15px; left:15px; background-color:#ff8c00; border:none; padding:10px; border-radius:50%; font-size:1.2em; cursor:pointer; color:#fff; z-index:1000; }
-#cartCount { position:absolute; top:-5px; left:-5px; background:red; color:#fff; font-size:0.8em; width:20px; height:20px; border-radius:50%; display:flex; justify-content:center; align-items:center; }
-#cart { position:fixed; top:60px; left:15px; width:270px; max-height:80%; overflow-y:auto; background:#fff; border:1px solid #ccc; padding:10px; display:none; z-index:999; }
-.cart-item { display:flex; justify-content:space-between; margin-bottom:5px; align-items:center; }
-.cart-item button { padding:2px 5px; cursor:pointer; }
-#invoicePrint {display:none;}
+body{font-family:sans-serif;background:#f8f0f8;margin:0;padding:0;color:#333;}
+header{background:#d18cd1;color:white;padding:15px;text-align:center;font-size:1.5em;font-weight:bold;}
+.container{display:flex;flex-wrap:wrap;padding:10px;}
+.categories{flex:1 1 60%;padding:10px;max-width:800px;position:relative;}
+.details-category{background:#fdfdfd;margin-bottom:10px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.details-category summary{padding:10px;background:#d9b3f2;border-radius:6px;cursor:pointer;font-weight:bold;}
+.product-card{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-top:1px solid #eee;}
+.product-card button{background:#d18cd1;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;}
+.product-card button:hover{background:#b069c2;}
+.added-tick{color:green;margin-left:5px;display:none;}
+.cart-container{flex:1 1 35%;padding:10px;position:sticky;top:10px;max-height:80vh;overflow:auto;background:#fdfdfd;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.cart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.cart-header button{background:#d18cd1;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid #eee;}
+.cart-item button{padding:2px 6px;margin:0 2px;border:none;border-radius:4px;background:#d18cd1;color:white;cursor:pointer;}
+#searchBar{width:100%;padding:8px;margin-bottom:10px;border-radius:4px;border:1px solid #ccc;}
+#searchResults{background:white;border:1px solid #ccc;border-radius:4px;max-height:150px;overflow:auto;position:absolute;z-index:100;display:none;width:calc(100% - 20px);}
+.search-item{padding:5px;cursor:pointer;display:flex;justify-content:space-between;}
+.search-item:hover{background:#f0f0f0;}
+.invoicePrint{display:none;}
 </style>
 </head>
 <body>
-<header>کافه بستنی دویار</header>
-<div id="searchContainer">
-<input type="text" id="searchBar" placeholder="جستجوی محصول...">
-<div id="searchResults"></div>
-</div>
-<div id="categories"></div>
-<button id="cartBtn">🛒<span id="cartCount">0</span></button>
-<div id="cart">
-<h3>سبد خرید</h3>
-<div id="cartItems"></div>
-<div>جمع کل: <span id="cartTotal">0</span> تومان</div>
-<button id="printBtn">چاپ فاکتور</button>
+<header>کافه بستنی دویار - POS</header>
+
+<div class="container">
+  <div class="categories">
+    <input type="text" id="searchBar" placeholder="جستجوی محصول...">
+    <div id="searchResults"></div>
+    <div id="categories"></div>
+  </div>
+  
+  <div class="cart-container">
+    <div class="cart-header">
+      <span>سبد خرید 🛒 <span id="cartCount">0</span></span>
+      <button id="printBtn">چاپ فاکتور</button>
+    </div>
+    <div id="cartItems"></div>
+    <div style="margin-top:10px;font-weight:bold;">جمع کل: <span id="cartTotal">0</span> تومان</div>
+  </div>
 </div>
 
-<div id="invoicePrint">
-<h2 style="text-align:center">رسید خرید</h2>
-<table style="width:100%;border-collapse:collapse" border="1">
-<thead>
-<tr><th>محصول</th><th>تعداد</th><th>قیمت واحد</th><th>جمع</th></tr>
-</thead>
-<tbody id="invBody"></tbody>
-</table>
-<p>جمع کل: <span id="invTotal"></span> تومان</p>
-<p id="invDate"></p>
+<div class="invoicePrint" id="invoicePrint">
+  <h3 style="text-align:center;">کافه بستنی دویار</h3>
+  <table style="width:100%;border-collapse:collapse;" id="invBody"></table>
+  <p>جمع کل: <span id="invTotal"></span> تومان</p>
+  <p>تاریخ: <span id="invDate"></span></p>
 </div>
 
 <script>
-// دسته‌ها
-const categoriesData = ["بستنی‌ها","فالوده‌ها","شیرها و شیک‌ها","آبمیوه‌ها","معجون و کیک بستنی","قهوه‌ها","ذرت‌ها","متفرقه","بطری‌ها"];
-// محصولات کامل
-const productsData = [
-{name:"بستنی سنتی بدون مغز", price:220000, category:"بستنی‌ها"},
-{name:"بستنی سنتی مغزدار", price:260000, category:"بستنی‌ها"},
-{name:"بستنی سنتی لیوانی", price:40000, category:"بستنی‌ها"},
-{name:"بستنی سنتی حصیری", price:40000, category:"بستنی‌ها"},
-{name:"آب هویج بستنی", price:60000, category:"بستنی‌ها"},
-{name:"طالبی بستنی", price:70000, category:"بستنی‌ها"},
-{name:"بستنی قیفی وانیلی", price:35000, category:"بستنی‌ها"},
-{name:"بستنی قیفی وانیل کاکائو", price:40000, category:"بستنی‌ها"},
-{name:"بستنی دستگاهی لیوان بزرگ", price:50000, category:"بستنی‌ها"},
-{name:"بستنی دستگاهی لیوان کوچک", price:40000, category:"بستنی‌ها"},
-{name:"فالوده", price:50000, category:"فالوده‌ها"},
-{name:"فالوده بستنی", price:70000, category:"فالوده‌ها"},
-{name:"شیر موز", price:80000, category:"شیرها و شیک‌ها"},
-{name:"شیر موز خرما", price:120000, category:"شیرها و شیک‌ها"},
-{name:"شیر موز گردو", price:150000, category:"شیرها و شیک‌ها"},
-{name:"شیر پسته", price:150000, category:"شیرها و شیک‌ها"},
-{name:"شیر انبه", price:180000, category:"شیرها و شیک‌ها"},
-{name:"شیک", price:120000, category:"شیرها و شیک‌ها"},
-{name:"آیس پک", price:120000, category:"شیرها و شیک‌ها"},
-{name:"آب هویج", price:40000, category:"آبمیوه‌ها"},
-{name:"آب انار", price:90000, category:"آبمیوه‌ها"},
-{name:"آب زرشک", price:90000, category:"آبمیوه‌ها"},
-{name:"آب سیب", price:70000, category:"آبمیوه‌ها"},
-{name:"آب هندوانه", price:60000, category:"آبمیوه‌ها"},
-{name:"آب طالبی", price:60000, category:"آبمیوه‌ها"},
-{name:"آب آلبالو", price:60000, category:"آبمیوه‌ها"},
-{name:"کیک بستنی لیوانی", price:70000, category:"معجون و کیک بستنی"},
-{name:"کیک بستنی مخصوص", price:150000, category:"معجون و کیک بستنی"},
-{name:"معجون لیوانی", price:160000, category:"معجون و کیک بستنی"},
-{name:"معجون کاسه‌ای کوچک", price:180000, category:"معجون و کیک بستنی"},
-{name:"معجون کاسه‌ای بزرگ", price:250000, category:"معجون و کیک بستنی"},
-{name:"سینگل", price:40000, category:"قهوه‌ها"},
-{name:"دبل", price:50000, category:"قهوه‌ها"},
-{name:"آفوگاتو", price:80000, category:"قهوه‌ها"},
-{name:"هات چاکلت", price:90000, category:"قهوه‌ها"},
-{name:"کاپوچینو", price:80000, category:"قهوه‌ها"},
-{name:"ماسالا", price:80000, category:"قهوه‌ها"},
-{name:"نسکافه", price:75000, category:"قهوه‌ها"},
-{name:"لاته", price:85000, category:"قهوه‌ها"},
-{name:"آیس لاته", price:90000, category:"قهوه‌ها"},
-{name:"امریکانو", price:70000, category:"قهوه‌ها"},
-{name:"ایس امریکانو", price:80000, category:"قهوه‌ها"},
-{name:"کارامل ماکیاتو", price:90000, category:"قهوه‌ها"},
-{name:"موکا", price:90000, category:"قهوه‌ها"},
-{name:"ذرت مکزیکی کوچک", price:90000, category:"ذرت‌ها"},
-{name:"ذرت مکزیکی بزرگ", price:130000, category:"ذرت‌ها"},
-{name:"کیک شکلاتی", price:90000, category:"متفرقه"},
-{name:"آب معدنی کوچک", price:10000, category:"متفرقه"},
-{name:"آب معدنی بزرگ", price:15000, category:"متفرقه"},
-{name:"لایف", price:50000, category:"متفرقه"},
-{name:"هایپ", price:60000, category:"متفرقه"},
-{name:"کینگ", price:45000, category:"متفرقه"},
-{name:"کرونا", price:150000, category:"متفرقه"},
-{name:"ویتامین سی", price:40000, category:"متفرقه"},
-{name:"نوشیدنی گیاهی", price:40000, category:"متفرقه"},
-{name:"نوشیدنی گیاهی زعفرانی", price:45000, category:"متفرقه"},
-{name:"آیس مانکی", price:50000, category:"متفرقه"},
-{name:"آلوورا", price:42000, category:"متفرقه"},
-{name:"لیموناد شیشه‌ای", price:35000, category:"متفرقه"},
-{name:"بطری ۱ لیتری آب هویج", price:80000, category:"بطری‌ها"},
-{name:"بطری ۱ لیتری آب طالبی", price:140000, category:"بطری‌ها"},
-{name:"بطری ۱ لیتری آب سیب", price:180000, category:"بطری‌ها"},
-{name:"بطری ۱ لیتری آب هندوانه", price:120000, category:"بطری‌ها"},
-{name:"بطری ۱ لیتری آب پرتغال", price:200000, category:"بطری‌ها"},
-{name:"بطری ۱ لیتری شیر موز", price:180000, category:"بطری‌ها"}
+// ======= داده‌ها =======
+const productsData=[
+{name:"بستنی سنتی بدون مغز",price:220000,category:"بستنی‌ها"},
+{name:"بستنی سنتی مغزدار",price:260000,category:"بستنی‌ها"},
+{name:"بستنی سنتی لیوانی",price:40000,category:"بستنی‌ها"},
+{name:"طالبی بستنی",price:70000,category:"بستنی‌ها"},
+{name:"آب هویج بستنی",price:60000,category:"بستنی‌ها"},
+{name:"بستنی اسکوپی",price:25000,category:"بستنی‌ها"},
+{name:"فالوده",price:50000,category:"فالوده"},
+{name:"فالوده بستنی",price:70000,category:"فالوده"},
+{name:"آب هویج",price:40000,category:"آبمیوه"},
+{name:"آب انار",price:90000,category:"آبمیوه"},
+{name:"آب زرشک",price:90000,category:"آبمیوه"},
+{name:"آب سیب",price:70000,category:"آبمیوه"},
+{name:"آب طالبی",price:60000,category:"آبمیوه"},
+{name:"آب هندوانه",price:60000,category:"آبمیوه"},
+{name:"آب آلبالو",price:60000,category:"آبمیوه"},
+{name:"آب پرتغال",price:80000,category:"آبمیوه"},
+{name:"شیر موز",price:80000,category:"شیرها و شیک‌ها"},
+{name:"شیر موز خرما",price:120000,category:"شیرها و شیک‌ها"},
+{name:"شیر موز گردو",price:150000,category:"شیرها و شیک‌ها"},
+{name:"شیر پسته",price:150000,category:"شیرها و شیک‌ها"},
+{name:"شیر انبه",price:180000,category:"شیرها و شیک‌ها"},
+{name:"شیر موز بستنی",price:100000,category:"شیرها و شیک‌ها"},
+{name:"شیک",price:120000,category:"شیرها و شیک‌ها"},
+{name:"آیس پک",price:120000,category:"شیرها و شیک‌ها"},
+{name:"معجون لیوانی",price:160000,category:"معجون و کیک بستنی"},
+{name:"معجون کاسه‌ای کوچک",price:180000,category:"معجون و کیک بستنی"},
+{name:"معجون کاسه‌ای بزرگ",price:250000,category:"معجون و کیک بستنی"},
+{name:"کیک بستنی لیوانی",price:70000,category:"معجون و کیک بستنی"},
+{name:"کیک بستنی مخصوص",price:150000,category:"معجون و کیک بستنی"},
+{name:"ذرت مکزیکی کوچک",price:90000,category:"ذرت‌ها"},
+{name:"ذرت مکزیکی بزرگ",price:130000,category:"ذرت‌ها"},
+{name:"کیک شکلاتی",price:90000,category:"متفرقه"},
+{name:"آب معدنی کوچک",price:10000,category:"متفرقه"},
+{name:"آب معدنی بزرگ",price:15000,category:"متفرقه"},
+{name:"لایف",price:50000,category:"متفرقه"},
+{name:"هایپ",price:60000,category:"متفرقه"},
+{name:"کینگ",price:45000,category:"متفرقه"},
+{name:"کرونا",price:150000,category:"متفرقه"},
+{name:"ویتامین سی",price:40000,category:"متفرقه"},
+{name:"نوشیدنی گیاهی",price:40000,category:"متفرقه"},
+{name:"نوشیدنی گیاهی زعفرانی",price:45000,category:"متفرقه"},
+{name:"آیس مانکی",price:50000,category:"متفرقه"},
+{name:"آلوورا",price:42000,category:"متفرقه"},
+{name:"لیموناد شیشه ای",price:35000,category:"متفرقه"},
+{name:"بطری ۱ لیتری آب هویج",price:80000,category:"بطری‌ها"},
+{name:"بطری ۱ لیتری آب طالبی",price:140000,category:"بطری‌ها"},
+{name:"بطری ۱ لیتری آب سیب",price:180000,category:"بطری‌ها"},
+{name:"بطری ۱ لیتری آب هندوانه",price:120000,category:"بطری‌ها"},
+{name:"بطری ۱ لیتری آب پرتغال",price:200000,category:"بطری‌ها"},
+{name:"بطری ۱ لیتری شیر موز",price:180000,category:"بطری‌ها"}
 ];
 
+const categoriesData=[...new Set(productsData.map(p=>p.category))];
 let cart=[];
 
+// ======= المان‌ها =======
 const categoriesDiv=document.getElementById('categories');
-const cartBtn=document.getElementById('cartBtn');
-const cartDiv=document.getElementById('cart');
 const cartItemsDiv=document.getElementById('cartItems');
 const cartTotal=document.getElementById('cartTotal');
 const cartCount=document.getElementById('cartCount');
@@ -136,10 +121,11 @@ const searchBar=document.getElementById('searchBar');
 const searchResults=document.getElementById('searchResults');
 const printBtn=document.getElementById('printBtn');
 
-function renderCategories(data){
+// ======= رندر دسته‌ها =======
+function renderCategories(){
 categoriesDiv.innerHTML='';
 categoriesData.forEach(cat=>{
-const catProducts=data.filter(p=>p.category===cat);
+const catProducts=productsData.filter(p=>p.category===cat);
 if(catProducts.length>0){
 const details=document.createElement('details');
 details.className='details-category';
@@ -149,78 +135,89 @@ details.appendChild(summary);
 catProducts.forEach(p=>{
 const div=document.createElement('div');
 div.className='product-card';
-div.innerHTML=`<span>${p.name} - ${p.price.toLocaleString()} تومان</span>
-<button>افزودن</button><span class="added-tick">✔</span>`;
-div.querySelector('button').addEventListener('click',()=>{
-let item=cart.find(it=>it.name===p.name);
-if(item){item.qty++;}else{cart.push({name:p.name,price:p.price,qty:1});}
-renderCart();
+div.innerHTML=`<span>${p.name} - ${p.price.toLocaleString()} تومان <span class="added-tick">✔</span></span><button>اضافه کردن</button>`;
+const btn=div.querySelector('button');
 const tick=div.querySelector('.added-tick');
-tick.style.display='inline';
-setTimeout(()=>{tick.style.display='none';},300);
+btn.addEventListener('click',()=>{
+addToCart(p);tick.style.display='inline';setTimeout(()=>tick.style.display='none',300);
 });
 details.appendChild(div);
 });
 categoriesDiv.appendChild(details);
 }
+});
 }
 
+// ======= افزودن به سبد =======
+function addToCart(product){
+let found=cart.find(item=>item.name===product.name);
+if(found){found.qty++;}else{cart.push({...product,qty:1});}
+updateCart();
 }
 
-function renderCart(){
+// ======= حذف از سبد =======
+function removeFromCart(product){
+cart=cart.filter(item=>item.name!==product.name);
+updateCart();
+}
+
+// ======= کم کردن تعداد =======
+function decrementItem(product){
+let found=cart.find(item=>item.name===product.name);
+if(found){found.qty--; if(found.qty<=0) removeFromCart(product);}
+updateCart();
+}
+
+// ======= آپدیت سبد =======
+function updateCart(){
 cartItemsDiv.innerHTML='';
 let total=0;
-cart.forEach((item,index)=>{
+cart.forEach(it=>{
 const div=document.createElement('div');
 div.className='cart-item';
-div.innerHTML=`<span>${item.name}</span>
+div.innerHTML=`<span>${it.name} (${it.qty})</span>
 <div>
-<button class="minus">-</button>
-<span style="margin:0 5px">${item.qty}</span>
-<button class="plus">+</button>
+<button onclick='decrementItem(${JSON.stringify(it)})'>-</button>
+<button onclick='addToCart(${JSON.stringify(it)})'>+</button>
+<button onclick='removeFromCart(${JSON.stringify(it)})'>حذف</button>
 </div>`;
-div.querySelector('.minus').addEventListener('click',()=>{
-if(item.qty>1){item.qty--;}else{cart.splice(index,1);}
-renderCart();
-});
-div.querySelector('.plus').addEventListener('click',()=>{
-item.qty++;
-renderCart();
-});
 cartItemsDiv.appendChild(div);
-total+=item.price*item.qty;
+total+=it.price*it.qty;
 });
 cartTotal.textContent=total.toLocaleString();
-cartCount.textContent=cart.reduce((acc,it)=>acc+it.qty,0);
+cartCount.textContent=cart.reduce((a,b)=>a+b.qty,0);
+localStorage.setItem('cart',JSON.stringify(cart));
 }
 
-cartBtn.addEventListener('click', ()=>{ cartDiv.style.display = cartDiv.style.display==='none'?'block':'none'; });
+// ======= بارگذاری سبد از localStorage =======
+window.onload=function(){
+const saved=localStorage.getItem('cart');
+if(saved) cart=JSON.parse(saved);
+updateCart();
+renderCategories();
+}
 
-searchBar.addEventListener('input', ()=>{
-const term=searchBar.value.trim().replace('ا','آ').replace('آ','ا');
-if(term===''){searchResults.style.display='none'; searchResults.innerHTML=''; return;}
-const filtered=productsData.filter(p=>p.name.includes(term));
+// ======= جستجوی Autocomplete =======
+searchBar.addEventListener('input',()=>{
+const val=searchBar.value.trim();
+if(val===''){searchResults.style.display='none';return;}
+let filtered=productsData.filter(p=>p.name.replace(/آ/g,'ا').startsWith(val.replace(/آ/g,'ا')));
 searchResults.innerHTML='';
-if(filtered.length>0){
 filtered.forEach(p=>{
 const div=document.createElement('div');
 div.className='search-item';
-div.textContent=p.name;
-div.addEventListener('click',()=>{
-let item=cart.find(it=>it.name===p.name);
-if(item){item.qty++;}else{cart.push({name:p.name,price:p.price,qty:1});}
-renderCart();
-searchResults.style.display='none';
-searchBar.value='';
+div.innerHTML=`<span>${p.name} - ${p.price.toLocaleString()} تومان</span><button>+</button>`;
+div.querySelector('button').addEventListener('click',()=>{
+addToCart(p);
+searchBar.value='';searchResults.style.display='none';
 });
 searchResults.appendChild(div);
 });
-searchResults.style.display='block';
-}else{searchResults.style.display='none';}
+searchResults.style.display=filtered.length>0?'block':'none';
 });
 
-// چاپ فاکتور
-printBtn.addEventListener('click', ()=>{
+// ======= چاپ فاکتور =======
+printBtn.addEventListener('click',()=>{
 const invBody=document.getElementById('invBody');
 const invTotal=document.getElementById('invTotal');
 const invDate=document.getElementById('invDate');
@@ -235,12 +232,10 @@ total+=it.price*it.qty;
 invTotal.textContent=total.toLocaleString();
 invDate.textContent=new Date().toLocaleString();
 const printContent=document.getElementById('invoicePrint').innerHTML;
-const newWin=window.open('','', 'width=400,height=600');
-newWin.document.write('<html><head><title>رسید</title></head><body>'+printContent+'</body></html>');
-newWin.document.close(); newWin.focus(); newWin.print(); newWin.close();
+const newWin=window.open('','_blank','width=400,height=600');
+newWin.document.write('<html><head><title>رسید</title></head><body style="background:white;color:black;">'+printContent+'</body></html>');
+newWin.document.close();newWin.focus();newWin.print();newWin.close();
 });
-
-renderCategories(productsData);
 </script>
 </body>
 </html>
