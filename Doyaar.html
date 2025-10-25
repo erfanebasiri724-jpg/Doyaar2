@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>کافه بستنی دویار</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#fff; color:#333; direction:rtl; }
+header { background:#ff8c00; padding:15px; text-align:center; font-size:2em; font-weight:bold; color:#fff; }
+#searchBar { width:90%; max-width:400px; margin:10px auto; display:block; padding:8px; border-radius:5px; border:1px solid #ccc; text-align:right; }
+.details-category { margin:10px; border:1px solid #ccc; border-radius:5px; padding:5px; }
+summary { font-weight:bold; cursor:pointer; padding:5px; background:#ff8c00; color:#fff; border-radius:5px; }
+.product-card { border:1px solid #ccc; border-radius:8px; padding:10px; margin:5px; display:flex; justify-content:space-between; align-items:center; background:#f9f9f9; }
+.product-card button { padding:5px 8px; cursor:pointer; }
+.product-card .added-tick { color:green; font-weight:bold; display:none; margin-left:5px; }
+#cartBtn { position:fixed; top:15px; left:15px; background-color:#ff8c00; border:none; padding:10px; border-radius:50%; font-size:1.2em; cursor:pointer; color:#fff; z-index:1000; }
+#cartCount { position:absolute; top:-5px; left:-5px; background:red; color:#fff; font-size:0.8em; width:20px; height:20px; border-radius:50%; display:flex; justify-content:center; align-items:center; }
+#cart { position:fixed; top:60px; left:15px; width:270px; max-height:80%; overflow-y:auto; background:#fff; border:1px solid #ccc; padding:10px; display:none; z-index:999; }
+.cart-item { display:flex; justify-content:space-between; margin-bottom:5px; align-items:center; }
+.cart-item button { padding:2px 5px; cursor:pointer; }
+#invoicePrint {display:none;}
+</style>
+</head>
+<body>
+<header>کافه بستنی دویار</header>
+<input type="text" id="searchBar" placeholder="جستجوی محصول...">
+<div id="categories"></div>
+<button id="cartBtn">🛒<span id="cartCount">0</span></button>
+<div id="cart">
+<h3>سبد خرید</h3>
+<div id="cartItems"></div>
+<div>جمع کل: <span id="cartTotal">0</span> تومان</div>
+<button id="printBtn">چاپ فاکتور</button>
+</div>
+
+<div id="invoicePrint">
+<h2 style="text-align:center">رسید خرید</h2>
+<table style="width:100%;border-collapse:collapse" border="1">
+<thead>
+<tr><th>محصول</th><th>تعداد</th><th>قیمت واحد</th><th>جمع</th></tr>
+</thead>
+<tbody id="invBody"></tbody>
+</table>
+<p>جمع کل: <span id="invTotal"></span> تومان</p>
+<p id="invDate"></p>
+</div>
+
+<script>
+// دسته‌ها
+const categoriesData = ["بستنی‌ها","فالوده‌ها","شیرها و شیک‌ها","آبمیوه‌ها","معجون و کیک بستنی","قهوه‌ها","ذرت‌ها","متفرقه","بطری‌ها"];
+
+// محصولات کامل
+const productsData = [
+{name:"بستنی سنتی بدون مغز", price:220000, category:"بستنی‌ها"},
+{name:"بستنی سنتی مغزدار", price:260000, category:"بستنی‌ها"},
+{name:"بستنی سنتی لیوانی", price:40000, category:"بستنی‌ها"},
+{name:"بستنی سنتی حصیری", price:40000, category:"بستنی‌ها"},
+{name:"آب هویج بستنی", price:60000, category:"بستنی‌ها"},
+{name:"طالبی بستنی", price:70000, category:"بستنی‌ها"},
+{name:"بستنی قیفی وانیلی", price:35000, category:"بستنی‌ها"},
+{name:"بستنی قیفی وانیل کاکائو", price:40000, category:"بستنی‌ها"},
+{name:"بستنی دستگاهی لیوان بزرگ", price:50000, category:"بستنی‌ها"},
+{name:"بستنی دستگاهی لیوان کوچک", price:40000, category:"بستنی‌ها"},
+{name:"فالوده", price:50000, category:"فالوده‌ها"},
+{name:"فالوده بستنی", price:70000, category:"فالوده‌ها"},
+{name:"شیر موز", price:80000, category:"شیرها و شیک‌ها"},
+{name:"شیر موز خرما", price:120000, category:"شیرها و شیک‌ها"},
+{name:"شیر موز گردو", price:150000, category:"شیرها و شیک‌ها"},
+{name:"شیر پسته", price:150000, category:"شیرها و شیک‌ها"},
+{name:"شیر انبه", price:180000, category:"شیرها و شیک‌ها"},
+{name:"شیک", price:120000, category:"شیرها و شیک‌ها"},
+{name:"آیس پک", price:120000, category:"شیرها و شیک‌ها"},
+{name:"آب هویج", price:40000, category:"آبمیوه‌ها"},
+{name:"آب انار", price:90000, category:"آبمیوه‌ها"},
+{name:"آب زرشک", price:90000, category:"آبمیوه‌ها"},
+{name:"آب سیب", price:70000, category:"آبمیوه‌ها"},
+{name:"آب هندوانه", price:60000, category:"آبمیوه‌ها"},
+{name:"آب طالبی", price:60000, category:"آبمیوه‌ها"},
+{name:"آب آلبالو", price:60000, category:"آبمیوه‌ها"},
+{name:"کیک بستنی لیوانی", price:70000, category:"معجون و کیک بستنی"},
+{name:"کیک بستنی مخصوص", price:150000, category:"معجون و کیک بستنی"},
+{name:"معجون لیوانی", price:160000, category:"معجون و کیک بستنی"},
+{name:"معجون کاسه‌ای کوچک", price:180000, category:"معجون و کیک بستنی"},
+{name:"معجون کاسه‌ای بزرگ", price:250000, category:"معجون و کیک بستنی"},
+{name:"سینگل", price:40000, category:"قهوه‌ها"},
+{name:"دبل", price:50000, category:"قهوه‌ها"},
+{name:"آفوگاتو", price:80000, category:"قهوه‌ها"},
+{name:"هات چاکلت", price:90000, category:"قهوه‌ها"},
+{name:"کاپوچینو", price:80000, category:"قهوه‌ها"},
+{name:"ماسالا", price:80000, category:"قهوه‌ها"},
+{name:"نسکافه", price:75000, category:"قهوه‌ها"},
+{name:"لاته", price:85000, category:"قهوه‌ها"},
+{name:"آیس لاته", price:90000, category:"قهوه‌ها"},
+{name:"امریکانو", price:70000, category:"قهوه‌ها"},
+{name:"ایس امریکانو", price:80000, category:"قهوه‌ها"},
+{name:"کارامل ماکیاتو", price:90000, category:"قهوه‌ها"},
+{name:"موکا", price:90000, category:"قهوه‌ها"},
+{name:"ذرت مکزیکی کوچک", price:90000, category:"ذرت‌ها"},
+{name:"ذرت مکزیکی بزرگ", price:130000, category:"ذرت‌ها"},
+{name:"کیک شکلاتی", price:90000, category:"متفرقه"},
+{name:"آب معدنی کوچک", price:10000, category:"متفرقه"},
+{name:"آب معدنی بزرگ", price:15000, category:"متفرقه"},
+{name:"لایف", price:50000, category:"متفرقه"},
+{name:"هایپ", price:60000, category:"متفرقه"},
+{name:"کینگ", price:45000, category:"متفرقه"},
+{name:"کرونا", price:150000, category:"متفرقه"},
+{name:"ویتامین سی", price:40000, category:"متفرقه"},
+{name:"نوشیدنی گیاهی", price:40000, category:"متفرقه"},
+{name:"نوشیدنی گیاهی زعفرانی", price:45000, category:"متفرقه"},
+{name:"آیس مانکی", price:50000, category:"متفرقه"},
+{name:"آلوورا", price:42000, category:"متفرقه"},
+{name:"لیموناد شیشه‌ای", price:35000, category:"متفرقه"},
+{name:"بطری ۱ لیتری آب هویج", price:80000, category:"بطری‌ها"},
+{name:"بطری ۱ لیتری آب طالبی", price:140000, category:"بطری‌ها"},
+{name:"بطری ۱ لیتری آب سیب", price:180000, category:"بطری‌ها"},
+{name:"بطری ۱ لیتری آب هندوانه", price:120000, category:"بطری‌ها"},
+{name:"بطری ۱ لیتری آب پرتغال", price:200000, category:"بطری‌ها"},
+{name:"بطری ۱ لیتری شیر موز", price:180000, category:"بطری‌ها"}
+];
+
+let cart = [];
+
+const categoriesDiv = document.getElementById('categories');
+const cartBtn = document.getElementById('cartBtn');
+const cartDiv = document.getElementById('cart');
+const cartItemsDiv = document.getElementById('cartItems');
+const cartTotal = document.getElementById('cartTotal');
+const cartCount = document.getElementById('cartCount');
+const searchBar = document.getElementById('searchBar');
+const printBtn = document.getElementById('printBtn');
+
+function renderCategories(filteredProducts){
+  categoriesDiv.innerHTML='';
+  categoriesData.forEach(cat=>{
+    const det = document.createElement('details');
+    det.className='details-category';
+    const sum = document.createElement('summary');
+    sum.textContent=cat;
+    det.appendChild(sum);
+    const container = document.createElement('div');
+    container.className='products-container';
+    det.appendChild(container);
+    categoriesDiv.appendChild(det);
+    const products = filteredProducts.filter(p=>p.category===cat);
+    products.forEach(p=>{
+      const card=document.createElement('div');
+      card.className='product-card';
+      card.innerHTML=`<div>${p.name}</div><div>${p.price.toLocaleString()} تومان</div>
+      <button>➕</button><span class="added-tick">✔</span>`;
+      const btn = card.querySelector('button');
+      const tick = card.querySelector('.added-tick');
+      btn.addEventListener('click', ()=>{
+        const existing = cart.find(it=>it.name===p.name);
+        if(existing){ existing.qty++; } else { cart.push({name:p.name,price:p.price,qty:1}); }
+        tick.style.display='inline';
+        setTimeout(()=>tick.style.display='none',300);
+        renderCart();
+      });
+      container.appendChild(card);
+    });
+  });
+}
+
+function renderCart(){
+  cartItemsDiv.innerHTML='';
+  let total=0;
+  cart.forEach((item,index)=>{
+    const div=document.createElement('div');
+    div.className='cart-item';
+    div.innerHTML=`<span>${item.name}</span>
+    <div>
+      <button class="minus">-</button>
+      <span style="margin:0 5px">${item.qty}</span>
+      <button class="plus">+</button>
+    </div>`;
+    div.querySelector('.minus').addEventListener('click', ()=>{
+      if(item.qty>1){ item.qty--; } else { cart.splice(index,1); }
+      renderCart();
+    });
+    div.querySelector('.plus').addEventListener('click', ()=>{
+      item.qty++;
+      renderCart();
+    });
+    cartItemsDiv.appendChild(div);
+    total+=item.price*item.qty;
+  });
+  cartTotal.textContent=total.toLocaleString();
+  cartCount.textContent=cart.reduce((acc,it)=>acc+it.qty,0);
+}
+
+cartBtn.addEventListener('click', ()=>{ cartDiv.style.display = cartDiv.style.display==='none'?'block':'none'; });
+
+searchBar.addEventListener('input', ()=>{
+  const term = searchBar.value.trim();
+  const filtered = productsData.filter(p=>p.name.includes(term));
+  renderCategories(filtered);
+});
+
+// چاپ فاکتور
+printBtn.addEventListener('click', ()=>{
+  const invBody=document.getElementById('invBody');
+  const invTotal=document.getElementById('invTotal');
+  const invDate=document.getElementById('invDate');
+  invBody.innerHTML='';
+  let total=0;
+  cart.forEach(it=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="text-align:right">${it.name}</td><td>${it.qty}</td><td>${it.price.toLocaleString()}</td><td>${(it.price*it.qty).toLocaleString()}</td>`;
+    invBody.appendChild(tr);
+    total+=it.price*it.qty;
+  });
+  invTotal.textContent=total.toLocaleString();
+  invDate.textContent=new Date().toLocaleString();
+  const printContent=document.getElementById('invoicePrint').innerHTML;
+  const newWin=window.open('','', 'width=400,height=600');
+  newWin.document.write('<html><head><title>رسید</title></head><body>'+printContent+'</body></html>');
+  newWin.document.close(); newWin.focus(); newWin.print(); newWin.close();
+});
+
+renderCategories(productsData);
+</script>
+</body>
+</html>
